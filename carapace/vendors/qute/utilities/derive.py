@@ -26,7 +26,7 @@ def is_string(value):
 
 # ------------------------------------------------------------------------------
 # noinspection PyPep8Naming
-def deriveWidget(value, label=''):
+def deriveWidget(value, label='', active_value=None):
     """
     Given the data type of the value, this will make a guess at the best
     fit ui element to represent that value.
@@ -36,6 +36,10 @@ def deriveWidget(value, label=''):
 
     :param label: This is how any labelled widget will be displayed as
     :type label: str
+
+    :param active_value: If given, this is used on any widgets which are
+        indexed, such as combo boxes
+    :type active_value: variable
 
     :return: QWidget
     """
@@ -67,10 +71,18 @@ def deriveWidget(value, label=''):
         return derived
 
     if value_type in [list, tuple]:
+        active_index = 0
         derived = QtWidgets.QComboBox()
 
-        for item in value:
+        for idx, item in enumerate(value):
             derived.addItem(item)
+
+            if active_value and item == active_value:
+                active_index = idx
+
+        # -- Set the default value
+        derived.setCurrentIndex(active_index)
+
 
         return derived
 

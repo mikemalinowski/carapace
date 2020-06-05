@@ -7,7 +7,7 @@ from . import layouts
 
 # ------------------------------------------------------------------------------
 # noinspection PyUnresolvedReferences,PyPep8Naming
-def addLabel(widget, label):
+def addLabel(widget, label, min_width=None):
     """
     Adds a label to the widget, returning a layout with the label
     on the left and the widget on the right.
@@ -21,6 +21,9 @@ def addLabel(widget, label):
     :return: SlimHBoxLayout
     """
     label = Qt.QtWidgets.QLabel(label)
+    if min_width:
+        label.setMinimumWidth(min_width)
+
     layout = layouts.slimify(Qt.QtWidgets.QHBoxLayout())
 
     layout.addWidget(label)

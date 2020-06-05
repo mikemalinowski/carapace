@@ -1,0 +1,15 @@
+[
+  {
+    "panel_name": "Test",
+    "tools": [
+      "Mikes Tool",
+      "Mikes Other Tool"
+    ]
+  },
+  {
+    "panel_name": "Other",
+    "tools": [
+      "Mikes Other Tool"
+    ]
+  }
+]

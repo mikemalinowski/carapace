@@ -1,18 +1,12 @@
 import os
+
+from . import infopanel
+from . import resources
 from ...vendors import qute
 
 
 # --------------------------------------------------------------------------------------------------
-def _get_resource(name):
-    return os.path.join(
-        os.path.dirname(__file__),
-        '_res',
-        name,
-    )
-
-
-# --------------------------------------------------------------------------------------------------
-def show_tooltip(title=None, descriptive=None, graphic=None):
+def show_tooltip(title=None, descriptive=None, graphic=None, pos=None):
     """
     For the sake of optimisation we only ever instance a single tooltip if
     we can. Therefore this function handles the concept of a singleton.
@@ -32,7 +26,7 @@ def show_tooltip(title=None, descriptive=None, graphic=None):
     # -- debugging
     title = title or 'Test'
     descriptive = descriptive or 'this is a demonstration of a tooltip'
-    graphic = graphic or _get_resource('test.gif')
+    graphic = graphic or resources.get('test.gif')
 
     # -- Ensure we have a parent - we use the maya window
     parent = qute.utilities.windows.mainWindow()
@@ -45,6 +39,14 @@ def show_tooltip(title=None, descriptive=None, graphic=None):
                 descriptive,
                 graphic,
             )
+
+            TooltipWindow.ACTIVE_INSTANCE.setGeometry(
+                pos.x(),
+                pos.y(),
+                TooltipWindow.ACTIVE_INSTANCE.size().width(),
+                TooltipWindow.ACTIVE_INSTANCE.size().height(),
+            )
+
             TooltipWindow.ACTIVE_INSTANCE.show()
             return TooltipWindow.ACTIVE_INSTANCE
         except:
@@ -58,6 +60,14 @@ def show_tooltip(title=None, descriptive=None, graphic=None):
         graphic,
         parent=parent
     )
+
+    TooltipWindow.ACTIVE_INSTANCE.setGeometry(
+        pos.x(),
+        pos.y(),
+        TooltipWindow.ACTIVE_INSTANCE.size().width(),
+        TooltipWindow.ACTIVE_INSTANCE.size().height(),
+    )
+
     TooltipWindow.ACTIVE_INSTANCE.show()
     
     return TooltipWindow.ACTIVE_INSTANCE
@@ -88,14 +98,14 @@ class ToolTip(qute.QWidget):
         # -- Define the styling based on the css data
         qute.utilities.styling.apply(
             [
-                _get_resource('tooltip.css')
+                resources.get('tooltip.css')
             ],
             apply_to=self,
         )
 
         # -- Load in the ui file
         self.ui = qute.utilities.designer.load(
-            _get_resource('tooltip.ui'),
+            resources.get('tooltip.ui'),
         )
         self.layout().addWidget(self.ui)
 
@@ -159,7 +169,7 @@ class ToolTip(qute.QWidget):
 
 
 # --------------------------------------------------------------------------------------------------
-class TooltipWindow(qute.QMainWindow):
+class TooltipWindow(infopanel.PanelWindow):
     """
     This is the main window panel which holds the tooltip widget. This window
     is responsible for the transparency and rounding.
@@ -168,20 +178,11 @@ class TooltipWindow(qute.QMainWindow):
     # -- to re-use it where possible
     ACTIVE_INSTANCE = None
 
-    # -- Define class variables so we do not have to reinitialise them
-    # -- as these are considered constants.
-    BACKGROUND_COLOR = qute.QColor(46, 46, 46, a=200)
-    PEN = qute.QPen(qute.Qt.black, 1)
-    ROUNDING = 25
+    ROUNDING = 8
 
     # ----------------------------------------------------------------------------------------------
     def __init__(self, title, descriptive, graphic, parent=None):
         super(TooltipWindow, self).__init__(parent=parent)
-
-        # -- Set the window to not have a title bar and have the background
-        # -- be transparent
-        self.setWindowFlags(qute.Qt.Window | qute.Qt.FramelessWindowHint)
-        self.setAttribute(qute.Qt.WA_TranslucentBackground)
 
         # -- Assign the central widget
         self.setCentralWidget(
@@ -209,33 +210,3 @@ class TooltipWindow(qute.QMainWindow):
         :return:
         """
         self.centralWidget().setData(title, descriptive, graphic)
-
-    # ----------------------------------------------------------------------------------------------
-    def paintEvent(self, event):
-        """
-        We override the paint event to allow us to draw with nice rounded edges
-
-        :param event:
-        :return:
-        """
-        qp = qute.QPainter()
-        qp.begin(self)
-        qp.setRenderHint(
-            qute.QPainter.Antialiasing,
-            True,
-        )
-
-        tooltip_size = self.size()
-
-        qp.setPen(self.PEN)
-        qp.setBrush(self.BACKGROUND_COLOR)
-
-        qp.drawRoundedRect(
-            0,
-            0,
-            tooltip_size.width(),
-            tooltip_size.height(),
-            self.ROUNDING,
-            self.ROUNDING,
-        )
-        qp.end()
